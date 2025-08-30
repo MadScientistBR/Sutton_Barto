@@ -1,0 +1,75 @@
+# --- Credenciais e Segredos ---
+.env
+*.env
+credentials.json
+secrets/
+*.credential
+
+# --- Ambientes Virtuais ---
+# Ignore as pastas de ambientes virtuais do Python.
+.venv/
+venv/
+env/
+.env/
+
+# --- Dados ---
+# Geralmente, dados brutos e processados não devem ser versionados com Git.
+# Use DVC (Data Version Control) ou armazene-os em um data lake/warehouse.
+# A linha abaixo ignora TUDO dentro das pastas de dados. O .gitkeep
+# garante que as pastas vazias ainda sejam rastreadas pelo Git.
+data/01_raw/*
+data/02_interim/*
+data/03_processed/*
+# Descomente a linha abaixo se você tiver dados de exemplo pequenos que QUEIRA versionar.
+# !data/sample/
+
+# --- Modelos Treinados ---
+# Modelos são artefatos grandes e binários, não devem ir para o Git.
+# Use DVC ou um registro de modelos como MLflow para versioná-los.
+models/
+*.pkl
+*.joblib
+*.h5
+*.onnx
+
+# --- Caches e Arquivos Gerados pelo Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Arquivos de IDE, Editores e Sistema Operacional ---
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints/
+
+# VSCode
+.vscode/
+
+# PyCharm
+.idea/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# --- Arquivos de Build e Distribuição ---
+build/
+dist/
+*.egg-info/
+*.whl
+
+# --- Logs e Relatórios ---
+# Comite o código que gera os relatórios, não os relatórios em si.
+reports/
+logs/
+*.log
+*.html
+*.pdf
+
+# Exceção para o README em pastas que de outra forma estariam vazias
+!*/README.md
