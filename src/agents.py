@@ -10,6 +10,7 @@ from .bandits import Bandits
 class UpdatePolicy(Enum):
     WEIGHTED_AVERAGE = auto()
     SAMPLE_AVERAGE = auto()
+    GRADIENT_BASED = auto()
 
 
 class InitializationPolicy(Enum):
@@ -43,7 +44,10 @@ class Agent:
         if initialization_policy_type == InitializationPolicy.REALISTIC:
             self.estimative = np.random.normal(size=len(self.environment))
 
-        if update_policy_type == UpdatePolicy.WEIGHTED_AVERAGE:
+        if (
+            update_policy_type == UpdatePolicy.WEIGHTED_AVERAGE
+            or update_policy_type == UpdatePolicy.GRADIENT_BASED
+        ):
             self.step_size = step_size
 
         self.number_of_tries = [0 for _ in range(len(bandits))]
@@ -125,3 +129,45 @@ class UCBAgent(Agent):
             np.log(self.total_plays) / np.array(self.number_of_tries)
         )
         return int(np.argmax(ucb_estimates))
+
+
+class GradientAgent(Agent):
+    def __init__(
+        self,
+        bandits: Bandits,
+        initialization_policy_type: InitializationPolicy,
+        step_size: float = AgentParameters.STEP_SIZE.value,
+        update_policy_type: UpdatePolicy = UpdatePolicy.GRADIENT_BASED,
+    ) -> None:
+        super().__init__(
+            bandits, update_policy_type, initialization_policy_type, step_size
+        )
+        self.average_reward = 0.0
+        self.total_plays = 0
+        self._calculate_action_probabilities()
+
+    def _calculate_action_probabilities(self) -> None:
+        self.probabilities = np.exp(self.estimative) / np.sum(np.exp(self.estimative))
+
+    def choose_action(self) -> int:
+        self.total_plays += 1
+
+        self._calculate_action_probabilities()
+        index = np.random.choice(len(self.probabilities), p=self.probabilities)
+
+        return index
+
+    def update_policy(self, choosen_index: int, true_reward: float) -> None:
+        self.number_of_tries[choosen_index] += 1
+
+        self.average_reward += (true_reward - self.average_reward) / self.total_plays
+
+        advantage = true_reward - self.average_reward
+
+        for i in range(len(self.estimative)):
+            if i == choosen_index:
+                self.estimative[i] += (
+                    self.step_size * advantage * (1.0 - self.probabilities[i])
+                )
+            else:
+                self.estimative[i] -= self.step_size * advantage * self.probabilities[i]
